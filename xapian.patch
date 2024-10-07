@@ -1,0 +1,89 @@
+diff --git a/bin/xapian-delve.cc b/bin/xapian-delve.cc
+index 32bbdb8..d06e97e 100644
+--- a/bin/xapian-delve.cc
++++ b/bin/xapian-delve.cc
+@@ -119,11 +119,12 @@ show_db_stats(Database &db)
+ 	}
+     }
+     cout << "currently open for writing = ";
+-    try {
+-	cout << db.locked() << '\n';
+-    } catch (const Xapian::Error& e) {
+-	cout << e.get_description() << '\n';
+-    }
++    cout << "<!> NOT IMPLEMENTED <!>\n";
++ //    try {
++	// cout << db.locked() << '\n';
++ //    } catch (const Xapian::Error& e) {
++	// cout << e.get_description() << '\n';
++ //    }
+ 
+     if (count_zero_length_docs) {
+ 	Xapian::doccount empty_docs = 0;
+diff --git a/common/io_utils.cc b/common/io_utils.cc
+index 854c2cd..ccdb367 100644
+--- a/common/io_utils.cc
++++ b/common/io_utils.cc
+@@ -94,7 +94,7 @@ io_open_block_wr(const char * fname, bool anew)
+     (void)close(badfd);
+     errno = save_errno;
+ #else
+-    {
++/*    {
+ 	char toclose[MIN_WRITE_FD];
+ 	memset(toclose, 0, sizeof(toclose));
+ 	fd = badfd;
+@@ -113,7 +113,7 @@ io_open_block_wr(const char * fname, bool anew)
+ 	    (void)fcntl(fd, F_SETFD, FD_CLOEXEC);
+ # endif
+ 	}
+-    }
++    }*/
+ #endif
+     Assert(fd >= MIN_WRITE_FD || fd < 0);
+     return fd;
+diff --git a/include/xapian/error.h b/include/xapian/error.h
+index e732783..44dbbd6 100644
+--- a/include/xapian/error.h
++++ b/include/xapian/error.h
+@@ -28,9 +28,31 @@
+ #endif
+ 
+ #include <string>
++#include <iostream>
+ #include <xapian/attributes.h>
+ #include <xapian/visibility.h>
+ 
++template<typename E>
++__attribute__((noreturn)) inline void xapian_wasm_throw(E ex) {
++    std::cerr << "<!> XAPIAN EXCEPTION THROWN <!>" << '\n';
++    std::cerr << ex.what() << '\n';
++    std::terminate();
++}
++template<>
++__attribute__((noreturn)) inline void xapian_wasm_throw<const char*>(const char* ex) {
++    std::cerr << "<!> XAPIAN EXCEPTION THROWN <!>" << '\n';
++    std::cerr << ex << '\n';
++    std::terminate();
++}
++__attribute__((noreturn)) inline void xapian_wasm_rethrow() {
++    std::cerr << "<!> XAPIAN EXCEPTION RETHROW <!>" << '\n';
++    std::terminate();
++}
++__attribute__((noreturn)) inline void xapian_wasm_complex_catch() {
++    std::cerr << "<!> XAPIAN EXCEPTION CATCH <!>" << '\n';
++    std::terminate();
++}
++
+ namespace Xapian {
+ 
+ class ErrorHandler;
+@@ -144,6 +166,8 @@ class XAPIAN_VISIBILITY_DEFAULT Error {
+ 
+     /// Return a string describing this object.
+     std::string get_description() const;
++
++    std::string what() const { return get_description(); }
+ };
+ 
+ /** The base class for exceptions indicating errors in the program logic.

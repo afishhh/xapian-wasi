@@ -1,0 +1,41 @@
+diff --git a/pkgs/development/compilers/llvm/common/libcxx/default.nix b/pkgs/development/compilers/llvm/common/libcxx/default.nix
+index 17c687f88..3620429de 100644
+--- a/pkgs/development/compilers/llvm/common/libcxx/default.nix
++++ b/pkgs/development/compilers/llvm/common/libcxx/default.nix
+@@ -89,7 +89,7 @@ let
+     "-DLIBCXX_ADDITIONAL_LIBRARIES=unwind"
+   ] ++ lib.optionals stdenv.hostPlatform.isWasm [
+     "-DLIBCXX_ENABLE_THREADS=OFF"
+-    "-DLIBCXX_ENABLE_FILESYSTEM=OFF"
++    "-DLIBCXX_ENABLE_FILESYSTEM:BOOL=ON"
+     "-DLIBCXX_ENABLE_EXCEPTIONS=OFF"
+   ] ++ lib.optionals (!enableShared) [
+     "-DLIBCXX_ENABLE_SHARED=OFF"
+diff --git a/pkgs/development/libraries/wasilibc/default.nix b/pkgs/development/libraries/wasilibc/default.nix
+index c0714a785..fc2e5ce17 100644
+--- a/pkgs/development/libraries/wasilibc/default.nix
++++ b/pkgs/development/libraries/wasilibc/default.nix
+@@ -8,17 +8,16 @@
+ 
+ let
+   pname = "wasilibc";
+-  version = "21";
++  version = "22";
+ in
+ stdenv.mkDerivation {
+   inherit pname version;
+ 
+-  src = buildPackages.fetchFromGitHub {
+-    owner = "WebAssembly";
+-    repo = "wasi-libc";
+-    rev = "refs/tags/wasi-sdk-${version}";
+-    hash = "sha256-1LsMpO29y79twVrUsuM/JvC7hK8O6Yey4Ard/S3Mvvc=";
+-    fetchSubmodules = true;
++  src = builtins.fetchTree {
++    type = "git";
++    url = "git@github.com:WebAssembly/wasi-libc.git";
++    rev = "9e8c542319242a5e536e14e6046de5968d298038";
++    submodules = true;
+   };
+ 
+   outputs = [ "out" "dev" "share" ];
